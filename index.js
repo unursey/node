@@ -2,7 +2,7 @@ const newObj = require('mpackage');
 
 const obj = {
   name: 'тОни стАрк',
-  dateBirth: '29.05.1970',
+  dateOfBirth: '29.05.1970',
   purpose: 'сПасТи Мир и Умереть'
 };
 
