@@ -1,69 +1,52 @@
-import { EventEmitter } from 'node:events';
+import { copyFolder } from './modules/copyFolder.js';
+import { Logger } from './modules/Logger.js';
+import { LoggerTwo } from './modules/LoggerTwo.js';
 
-// Таймер
-class Timer extends EventEmitter {
-  constructor({ name }) {
-    super();
-    this.name = name;
-  }
-
-  start(ms) {
-    let tickCount = 1;
-
-    this.timerInterval = setInterval(() => {
-      this.emit('tick', tickCount);
-      tickCount++;
-    }, 1000);
-
-    setTimeout(() => {
-      clearInterval(this.timerInterval);
-      this.emit('boom');
-    }, ms);
-  }
-
-  emit(name, ...args) {
-    super.emit(name, ...args);
-    console.log('logger', name, ...args);
-  }
-}
-
-const user = new Timer({ name: 'Timer' });
-
-user.on('tick', tickCount => {
-  console.log(`Tick ${tickCount}`);
-});
-
-user.on('boom', () => {
-  console.log('BOOM');
-});
-
-user.start(5000);
-
-// Чат
-class Messenger extends EventEmitter {
-  constructor({ name }) {
-    super();
-    this.name = name;
-  }
-
-  sendMessage(username, message) {
-    this.emit('message', { username, message });
-  }
-
-  receiveMessage() {
-    this.on('message', ({ username, message }) => {
-      console.log(`${username}: ${message}`);
+const app3 = async () => {
+  try {
+    await copyFolder('./testFolder', './newTestFolder', err => {
+      if (err) {
+        console.error('Ошибка копирования:', err);
+      } else {
+        console.log('Копирование завершено');
+      }
     });
+  } catch (error) {
+    console.error('Ошибка:', error);
   }
+};
 
-  emit(name, ...args) {
-    super.emit(name, ...args);
-    console.log('logger', name, ...args);
-  }
-}
+//app3();
 
-const messenger = new Messenger({ name: 'Messenger' });
+const logger = new Logger('log.txt', 1024);
 
-messenger.receiveMessage();
-messenger.sendMessage('Марк', 'Выключи утюг');
-messenger.sendMessage('Алиса', 'Я его не включала');
+logger.on('messageLogged', message => {
+  console.log('Записано сообщение:', message);
+});
+
+logger.log('Первое сообщение');
+logger.log('Второе сообщение');
+logger.log('Третье сообщение');
+logger.log('Четвертое сообщение');
+logger.log('Пятое сообщение');
+logger.log('Шестое сообщение');
+logger.log('Седьмое сообщение');
+logger.log('Восьмое сообщение');
+logger.log('Девятое сообщение');
+
+
+
+// const loggerTwo = new LoggerTwo('logTwo.txt', 1024);
+
+// loggerTwo.on('messageLogged', message => {
+//   console.log('Записано сообщение:', message);
+// });
+
+// loggerTwo.log('Первое сообщение');
+// loggerTwo.log('Второе сообщение');
+// loggerTwo.log('Третье сообщение');
+// loggerTwo.log('Четвертое сообщение');
+// loggerTwo.log('Пятое сообщение');
+// loggerTwo.log('Шестое сообщение');
+// loggerTwo.log('Седьмое сообщение');
+// loggerTwo.log('Восьмое сообщение');
