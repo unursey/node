@@ -1,52 +1,83 @@
-import { copyFolder } from './modules/copyFolder.js';
-import { Logger } from './modules/Logger.js';
-import { LoggerTwo } from './modules/LoggerTwo.js';
+import { createReadStream, createWriteStream } from 'node:fs';
+import { readdir } from 'node:fs/promises';
+import sharp from 'sharp';
 
-const app3 = async () => {
+// ! Задание 1
+const textToBuffer = (text, encoding) => Buffer.from(text, encoding);
+
+const bufferToText = (buffer, encoding) => buffer.toString(encoding);
+
+const text = 'Привет, мир!';
+const utf8Buffer = textToBuffer(text, 'utf8');
+console.log(utf8Buffer);
+
+const decoderText = bufferToText(utf8Buffer, 'utf8');
+console.log('decoderText: ', decoderText);
+
+// ! Задание 2
+const catalog = async (from, to) => {
   try {
-    await copyFolder('./testFolder', './newTestFolder', err => {
-      if (err) {
-        console.error('Ошибка копирования:', err);
-      } else {
-        console.log('Копирование завершено');
+    const wStream = createWriteStream(to);
+    const files = await readdir(from, { withFileTypes: true });
+
+    for (const { name } of files) {
+      if (name.includes('.txt')) {
+        const newFile = `${from}/${name}`;
+        const rStream = createReadStream(newFile);
+
+        wStream.write(`[${name.replace('.txt', '')}]\n`);
+
+        await new Promise((resolve, reject) => {
+          rStream.pipe(wStream, { end: false });
+
+          rStream.on('end', () => {
+            wStream.write('\n');
+            resolve();
+          });
+
+          rStream.on('error', err => {
+            console.error(err);
+            reject();
+          });
+        });
       }
-    });
-  } catch (error) {
-    console.error('Ошибка:', error);
+    }
+    wStream.end();
+    console.log('Завершено');
+  } catch (err) {
+    console.error(`Ошибка: ${err.message}`);
   }
 };
 
-//app3();
+catalog('./test', './newTest.txt');
 
-const logger = new Logger('log.txt', 1024);
+// ! Задание 3
 
-logger.on('messageLogged', message => {
-  console.log('Записано сообщение:', message);
-});
+const resizeImage = (inputPath, outputPath) => {
+  sharp(inputPath)
+    .resize(400, 400)
+    .toFormat('jpeg')
+    .toFile(outputPath, (err, info) => {
+      if (err) {
+        console.error(err);
+      } else {
+        console.log('Размер изменен успешно', info);
+      }
+    });
+};
 
-logger.log('Первое сообщение');
-logger.log('Второе сообщение');
-logger.log('Третье сообщение');
-logger.log('Четвертое сообщение');
-logger.log('Пятое сообщение');
-logger.log('Шестое сообщение');
-logger.log('Седьмое сообщение');
-logger.log('Восьмое сообщение');
-logger.log('Девятое сообщение');
+const filterImage = (inputPath, outputPath) => {
+  sharp(inputPath)
+    .greyscale()
+    .blur(3)
+    .toFile(outputPath, (err, info) => {
+      if (err) {
+        console.error(err);
+      } else {
+        console.log('Изображение отредактировано', info);
+      }
+    });
+};
 
-
-
-// const loggerTwo = new LoggerTwo('logTwo.txt', 1024);
-
-// loggerTwo.on('messageLogged', message => {
-//   console.log('Записано сообщение:', message);
-// });
-
-// loggerTwo.log('Первое сообщение');
-// loggerTwo.log('Второе сообщение');
-// loggerTwo.log('Третье сообщение');
-// loggerTwo.log('Четвертое сообщение');
-// loggerTwo.log('Пятое сообщение');
-// loggerTwo.log('Шестое сообщение');
-// loggerTwo.log('Седьмое сообщение');
-// loggerTwo.log('Восьмое сообщение');
+resizeImage('./test/kinopoisk.jpg', './newKinopoisk.jpg');
+filterImage('./test/kinopoisk.jpg', './filterKinopoisk.jpg');
